@@ -1,0 +1,38 @@
+name: Terraform Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Terraform Cloud API token
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Deploy to Terraform Workspace
+        run: |
+          # Replace the following placeholders with actual values
+          # - ORG_NAME: Your Terraform Cloud organization name (mimedia-org)
+          # - WORKSPACE_NAME: Name of the workspace for the environment (mimedia-dev or mimedia-uat)
+          # - ENVIRONMENT: The environment to deploy (dev or uat)
+
+          if [[ "${{ matrix.environment }}" == "dev" ]]; then
+            terraform workspace new -organization=ORG_NAME -name=mimedia-dev -auto-approve
+          elif [[ "${{ matrix.environment }}" == "uat" ]]; then
+            terraform workspace new -organization=ORG_NAME -name=mimedia-uat -auto-approve
+          fi
+          terraform run -organization=ORG_NAME -name=WORKSPACE_NAME -auto-approve
+        env:
+          ORG_NAME: mimedia-org
+          WORKSPACE_NAME: ${{ matrix.environment }}
+        matrix:
+          environment: [dev, uat]
